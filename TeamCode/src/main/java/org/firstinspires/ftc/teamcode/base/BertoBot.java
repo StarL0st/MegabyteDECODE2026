@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.base;
 
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.Command;
 import com.seattlesolvers.solverslib.command.CommandScheduler;
@@ -12,6 +13,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.base.command.drivetrain.DriveCommand;
 import org.firstinspires.ftc.teamcode.base.subsystems.Drivetrain;
 import org.firstinspires.ftc.teamcode.base.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.base.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.base.subsystems.arcsystems.ARCSystemsContext;
 import org.firstinspires.ftc.teamcode.base.subsystems.arcsystems.ConfigurableSubsystem;
 
@@ -25,6 +27,8 @@ public class BertoBot {
     public final GamepadEx driverOp;
     public final GamepadEx toolOp;
 
+    private final List<LynxModule> lynxModules;
+
     //subsystem
     private final HashMap<String, SubsystemBase> subsystems;
 
@@ -36,6 +40,11 @@ public class BertoBot {
         this.telemetry = new JoinedTelemetry(PanelsTelemetry.INSTANCE.getFtcTelemetry(), ftcTelemetry);
         this.driverOp = driverOp;
         this.toolOp = toolOp;
+
+        this.lynxModules = hwMap.getAll(LynxModule.class);
+        lynxModules.forEach((lynxModule -> {
+            lynxModule.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        }));
 
         this.subsystems = new HashMap<>();
         this.initSubsystems();
@@ -52,6 +61,7 @@ public class BertoBot {
 
         this.subsystems.put("drivetrain", new Drivetrain(hwMap, this.telemetry));
         this.subsystems.put("intake", new Intake(hwMap, this.telemetry));
+        this.subsystems.put("turret", new Shooter(hwMap, this.telemetry));
 
 
         this.subsystems.forEach(((s, subsystemBase) -> {

@@ -57,7 +57,7 @@ public class Drivetrain extends SubsystemBase implements ConfigurableSubsystem {
 
     public void driveWithController(double strafeSpeed, double forwardSpeed, double turnSpeed) {
         double y = -forwardSpeed;
-        double x = -strafeSpeed;
+        double x = strafeSpeed;
         double rx = -turnSpeed;
 
         if(runAutoTurn) {
@@ -70,7 +70,7 @@ public class Drivetrain extends SubsystemBase implements ConfigurableSubsystem {
             }
 
             rx = DriveConstants.TURN_P_GAIN * error;
-            rx = Math.min(Math.max(rx, -0.4), 0.4);
+            rx = Math.min(Math.max(rx, -0.7), 0.7);
         }
 
         double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
@@ -123,7 +123,7 @@ public class Drivetrain extends SubsystemBase implements ConfigurableSubsystem {
         ctx.getDriverOp().getGamepadButton(GamepadKeys.Button.CIRCLE)
                 .whenPressed(() -> {
                     this.runAutoTurn = true;
-                    this.headingSetpoint = 270;
+                    this.headingSetpoint = 45;
                 })
                 .whenReleased(() -> {
                     this.runAutoTurn = false;
