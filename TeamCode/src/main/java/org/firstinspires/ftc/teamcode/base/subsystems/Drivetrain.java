@@ -70,10 +70,10 @@ public class Drivetrain extends SubsystemBase implements ConfigurableSubsystem {
             }
 
             rx = DriveConstants.TURN_P_GAIN * error;
-            rx = Math.min(Math.max(rx, -0.7), 0.7);
+            rx = Math.min(Math.max(rx, -0.4), 0.4);
         }
 
-        double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        double botHeading = -imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
         double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
         double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
@@ -92,13 +92,19 @@ public class Drivetrain extends SubsystemBase implements ConfigurableSubsystem {
         right_back_drive.set(backRightPower);
     }
 
+    public void setTargetHeading(double angle) {
+        this.headingSetpoint = angle;
+    }
+
     @Override
     public void periodic() {
         telemetry.addData("Robot Heading", this.getHeading(AngleUnit.DEGREES));
+        telemetry.addData("running auto turn", this.runAutoTurn);
+        telemetry.addData("going to angle", this.headingSetpoint);
     }
 
     public double getHeading(AngleUnit unit) {
-        return this.imu.getRobotYawPitchRollAngles().getYaw(unit);
+        return -this.imu.getRobotYawPitchRollAngles().getYaw(unit);
     }
 
     public void resetIMU() {
@@ -123,7 +129,7 @@ public class Drivetrain extends SubsystemBase implements ConfigurableSubsystem {
         ctx.getDriverOp().getGamepadButton(GamepadKeys.Button.CIRCLE)
                 .whenPressed(() -> {
                     this.runAutoTurn = true;
-                    this.headingSetpoint = 45;
+                    this.setTargetHeading(270);
                 })
                 .whenReleased(() -> {
                     this.runAutoTurn = false;
@@ -132,10 +138,19 @@ public class Drivetrain extends SubsystemBase implements ConfigurableSubsystem {
         ctx.getDriverOp().getGamepadButton(GamepadKeys.Button.CROSS)
                 .whenPressed(() -> {
                     this.runAutoTurn = true;
-                    this.headingSetpoint = 45;
+                    this.setTargetHeading(45);
                 })
                 .whenReleased(() -> {
                     this.runAutoTurn = false;
                 });
+        /*
+        ctx.getDriverOp().getGamepadButton(GamepadKeys.Button.B)
+                .whenPressed(() -> {
+                    this.runAutoTurn = true;
+                })
+                .whenReleased(() -> {
+                    this.runAutoTurn = false;
+                });
+         */
     }
 }

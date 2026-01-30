@@ -13,14 +13,14 @@ import org.firstinspires.ftc.teamcode.base.subsystems.arcsystems.ConfigurableSub
 
 public class Intake extends SubsystemBase implements ConfigurableSubsystem {
     private final Motor intakeMotor;
-    private final ServoEx transferServo;
+    //private final ServoEx transferServo;
 
     public Intake(HardwareMap hwMap, JoinedTelemetry telemetry) {
         this.intakeMotor = new Motor(hwMap, "intakeMotor");
         this.intakeMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         this.intakeMotor.setRunMode(Motor.RunMode.RawPower);
 
-        this.transferServo = new ServoEx(hwMap, "transferServo", 0, 30);
+        //this.transferServo = new ServoEx(hwMap, "transferServo", 0, 30);
     }
 
     @Override
@@ -47,6 +47,7 @@ public class Intake extends SubsystemBase implements ConfigurableSubsystem {
                    }
                 });
 
+        /*
         ctx.getDriverOp().getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)
                 .whenPressed(() -> {
                     if(this.transferServo.get() != 20) {
@@ -58,6 +59,8 @@ public class Intake extends SubsystemBase implements ConfigurableSubsystem {
                         this.transferServo.set(0);
                     }
                 });
+
+         */
     }
 
 

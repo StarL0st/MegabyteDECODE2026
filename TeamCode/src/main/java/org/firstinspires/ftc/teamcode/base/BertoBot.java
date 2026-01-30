@@ -6,8 +6,10 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.command.Command;
 import com.seattlesolvers.solverslib.command.CommandScheduler;
+import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 import com.seattlesolvers.solverslib.gamepad.GamepadEx;
+import com.seattlesolvers.solverslib.gamepad.GamepadKeys;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.base.command.drivetrain.DriveCommand;
@@ -62,7 +64,6 @@ public class BertoBot {
         this.subsystems.put("drivetrain", new Drivetrain(hwMap, this.telemetry));
         this.subsystems.put("intake", new Intake(hwMap, this.telemetry));
         this.subsystems.put("turret", new Shooter(hwMap, this.telemetry));
-
 
         this.subsystems.forEach(((s, subsystemBase) -> {
             if(subsystemBase instanceof ConfigurableSubsystem) {

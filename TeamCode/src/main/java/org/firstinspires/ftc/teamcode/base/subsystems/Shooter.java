@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.base.subsystems;
 
+import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.pedropathing.control.PIDFController;
 import com.pedropathing.math.MathFunctions;
@@ -20,6 +21,7 @@ import org.firstinspires.ftc.teamcode.base.constants.ShooterConstants;
 import org.firstinspires.ftc.teamcode.base.subsystems.arcsystems.ARCSystemsContext;
 import org.firstinspires.ftc.teamcode.base.subsystems.arcsystems.ConfigurableSubsystem;
 
+@Configurable
 public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
 
     private final JoinedTelemetry telemetry;
@@ -30,37 +32,54 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
     private State state;
     private final Timer timer;
 
-    private DcMotorEx flywheelMotor;
-    //private final ServoEx turretRampServo;
+    private final Motor flywheelMotor;
+    private final ServoEx turretRampServo;
     private final Limelight3A limelight;
 
     public PIDFController flywheelController;
 
     private boolean runFlywheel = false;
-    private boolean runTurret = false;
 
     private final Vector robotToGoalVector = new Vector();
     private Vector launchVector = new Vector();
 
+    public static double targetFlywheelSpeed = 0.8;
+
+    //flywheel
+    private double flywheelKp = 20;
+    private double flywheelKi = 0;
+    private double flywheelKd = 0;
+    private double flywheelKf = 0.7;
 
     public Shooter(HardwareMap hwMap, JoinedTelemetry telemetry) {
         this.timer = new Timer();
         this.telemetry = telemetry;
 
-        this.flywheelMotor = hwMap.get(DcMotorEx.class, "turretFlywheelMotor");
-        this.flywheelMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        this.flywheelMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        this.flywheelMotor = new Motor(hwMap, "turretFlywheelMotor");
+        this.flywheelMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+        this.flywheelMotor.setRunMode(Motor.RunMode.VelocityControl);
+        this.flywheelMotor.setVeloCoefficients(flywheelKp, flywheelKi, flywheelKd);
+        this.flywheelMotor.setFeedforwardCoefficients(0, flywheelKf);
 
-        this.flywheelController = new PIDFController(ShooterConstants.FLYWHEEL_PIDF);
+        this.turretRampServo = new ServoEx(hwMap, "turretRampServo", 0, 50);
+        this.turretRampServo.setInverted(true);
+        //this.turretRampServo.getServo().setPosition(0);
+        //this.flywheelController = new PIDFController(ShooterConstants.FLYWHEEL_PIDF);
 
         this.limelight = hwMap.get(Limelight3A.class, "limelight");
+        this.limelight.setPollRateHz(100);
+
+        this.limelight.start();
+        this.limelight.pipelineSwitch(1);
         this.setState(State.READY);
+
+
     }
 
     @Override
     public void periodic() {
         //state machine
-        /*
+
         switch (state) {
             case READY:
                 //ready logic
@@ -79,13 +98,16 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
                 break;
         }
 
-         */
+
 
         if(state != State.OFF && state != State.RESET) {
             //goal targeting
-            setFlywheelSpeed(1450);
+            setFlywheelSpeed(targetFlywheelSpeed);
+
+            
         } else {
-            this.flywheelMotor.setPower(ShooterConstants.FLYWHEEL_OFF);
+            this.flywheelMotor.set(ShooterConstants.FLYWHEEL_OFF);
+            this.setHoodAngle(ShooterConstants.HOOD_LOW);
             this.flywheelController.reset();
         }
     }
@@ -96,14 +118,16 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
     }
 
     private void setFlywheelSpeed(double speed) {
-        double flywheelError = speed - this.flywheelMotor.getVelocity();
-        flywheelController.updateError(flywheelError);
-
-        double flywheelPower = MathFunctions.clamp(flywheelController.run(), -1, 1);
+        double flywheelError = speed - this.flywheelMotor.getCorrectedVelocity();
         this.telemetry.addData("flywheel state", this.runFlywheel);
-        this.telemetry.addData("flywheel speed", this.flywheelMotor.getVelocity());
-        this.telemetry.addData("flywheel PID", flywheelPower);
-        this.flywheelMotor.setPower(runFlywheel ? flywheelPower : 0);
+        this.telemetry.addData("flywheel speed", this.flywheelMotor.getCorrectedVelocity());
+        this.telemetry.addData("flywheel power", speed);
+        this.flywheelMotor.set(runFlywheel ? speed : 0);
+    }
+
+    private void setHoodAngle(double angle) {
+        if(angle < 0 || angle > 45) return;
+        this.turretRampServo.set(angle);
     }
 
     @Override
@@ -116,6 +140,14 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
         ctx.getDriverOp().getGamepadButton(GamepadKeys.Button.TRIANGLE)
                 .whenReleased(() -> {
                     this.runFlywheel = !this.runFlywheel;
+                });
+        ctx.getDriverOp().getGamepadButton(GamepadKeys.Button.DPAD_UP)
+                .whenReleased(() -> {
+                    this.setHoodAngle(45);
+                });
+        ctx.getDriverOp().getGamepadButton(GamepadKeys.Button.DPAD_DOWN)
+                .whenReleased(() -> {
+                    this.setHoodAngle(0);
                 });
     }
 }
