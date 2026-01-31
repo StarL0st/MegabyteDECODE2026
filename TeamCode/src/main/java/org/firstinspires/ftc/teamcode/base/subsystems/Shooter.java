@@ -6,6 +6,7 @@ import com.pedropathing.control.PIDFController;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.math.Vector;
 import com.pedropathing.util.Timer;
+import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -17,6 +18,8 @@ import com.seattlesolvers.solverslib.hardware.motors.Motor;
 import com.seattlesolvers.solverslib.hardware.servos.ServoEx;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.teamcode.base.PoseTracker;
 import org.firstinspires.ftc.teamcode.base.constants.ShooterConstants;
 import org.firstinspires.ftc.teamcode.base.subsystems.arcsystems.ARCSystemsContext;
 import org.firstinspires.ftc.teamcode.base.subsystems.arcsystems.ConfigurableSubsystem;
@@ -103,8 +106,8 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
         if(state != State.OFF && state != State.RESET) {
             //goal targeting
             setFlywheelSpeed(targetFlywheelSpeed);
+            updateLimelight();
 
-            
         } else {
             this.flywheelMotor.set(ShooterConstants.FLYWHEEL_OFF);
             this.setHoodAngle(ShooterConstants.HOOD_LOW);
@@ -115,6 +118,31 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
     public void setState(State s) {
         state = s;
         timer.resetTimer();
+    }
+
+    private void updateLimelight() {
+        this.limelight.updateRobotOrientation(PoseTracker.INSTANCE.getNormalizedHeading());
+        LLResult currentResult = this.limelight.getLatestResult();
+        if(currentResult != null && currentResult.isValid()) {
+            double staleness = currentResult.getStaleness();
+            if(staleness < 100) {
+                telemetry.addData("LL3A Data Last Update", staleness + "ms");
+            }  else {
+                telemetry.addData("LL3A Data", "Data is Old! " + staleness + "ms");
+            }
+            PoseTracker.INSTANCE.setTa(currentResult.getTa());
+            telemetry.addData("tx", PoseTracker.INSTANCE.getTx());
+            PoseTracker.INSTANCE.setTx(currentResult.getTx());
+            telemetry.addData("ta", PoseTracker.INSTANCE.getTa());
+            Pose3D botPose = currentResult.getBotpose_MT2();
+            if(botPose != null) {
+                telemetry.addData("pose", botPose.getPosition().toString());
+                telemetry.addData("orientation pose", botPose.getOrientation().toString());
+            }
+            telemetry.addData("regression dist", PoseTracker.distRegression(
+                    PoseTracker.INSTANCE.getTa()
+            ));
+        }
     }
 
     private void setFlywheelSpeed(double speed) {

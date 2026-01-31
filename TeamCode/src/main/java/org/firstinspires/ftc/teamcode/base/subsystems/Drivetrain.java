@@ -11,6 +11,7 @@ import com.seattlesolvers.solverslib.gamepad.GamepadKeys;
 import com.seattlesolvers.solverslib.hardware.motors.Motor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.base.PoseTracker;
 import org.firstinspires.ftc.teamcode.base.command.drivetrain.DriveCommand;
 import org.firstinspires.ftc.teamcode.base.constants.DriveConstants;
 import org.firstinspires.ftc.teamcode.base.subsystems.arcsystems.ARCSystemsContext;
@@ -101,6 +102,7 @@ public class Drivetrain extends SubsystemBase implements ConfigurableSubsystem {
         telemetry.addData("Robot Heading", this.getHeading(AngleUnit.DEGREES));
         telemetry.addData("running auto turn", this.runAutoTurn);
         telemetry.addData("going to angle", this.headingSetpoint);
+        PoseTracker.INSTANCE.setHeading(this.getHeading(AngleUnit.DEGREES));
     }
 
     public double getHeading(AngleUnit unit) {
