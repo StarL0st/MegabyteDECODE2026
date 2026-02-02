@@ -4,6 +4,11 @@ import com.bylazar.telemetry.JoinedTelemetry;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.gamepad.GamepadEx;
 
+/**
+ * Used for the creation of the subsystem instances and binding registration.
+ * <p>
+ * DO NOT MODIFY.
+ */
 public class ARCSystemsContext {
     private final HardwareMap hardwareMap;
     private final JoinedTelemetry telemetry;

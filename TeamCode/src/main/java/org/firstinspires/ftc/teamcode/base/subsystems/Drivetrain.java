@@ -17,6 +17,11 @@ import org.firstinspires.ftc.teamcode.base.constants.DriveConstants;
 import org.firstinspires.ftc.teamcode.base.subsystems.arcsystems.ARCSystemsContext;
 import org.firstinspires.ftc.teamcode.base.subsystems.arcsystems.ConfigurableSubsystem;
 
+/**
+ * Drivetrain subsystem
+ * <p>
+ * Handles ALL robot movement logic, utilizing a field-centric drive system.
+ */
 public class Drivetrain extends SubsystemBase implements ConfigurableSubsystem {
     private final JoinedTelemetry telemetry;
 
@@ -56,6 +61,12 @@ public class Drivetrain extends SubsystemBase implements ConfigurableSubsystem {
         this.imu.initialize(new IMU.Parameters(revOrientation));
     }
 
+    /**
+     * Run by `DriveCommand`, handles TeleOp movement and angle setpoints.
+     * @param strafeSpeed left joystick X value
+     * @param forwardSpeed left joystick Y value
+     * @param turnSpeed right joystick X value
+     */
     public void driveWithController(double strafeSpeed, double forwardSpeed, double turnSpeed) {
         double y = -forwardSpeed;
         double x = strafeSpeed;

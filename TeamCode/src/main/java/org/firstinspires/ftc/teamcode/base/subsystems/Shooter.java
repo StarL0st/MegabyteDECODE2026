@@ -46,14 +46,6 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
     private final Vector robotToGoalVector = new Vector();
     private Vector launchVector = new Vector();
 
-    public static double targetFlywheelSpeed = 0.8;
-
-    //flywheel
-    private double flywheelKp = 20;
-    private double flywheelKi = 0;
-    private double flywheelKd = 0;
-    private double flywheelKf = 0.7;
-
     public Shooter(HardwareMap hwMap, JoinedTelemetry telemetry) {
         this.timer = new Timer();
         this.telemetry = telemetry;
@@ -61,13 +53,15 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
         this.flywheelMotor = new Motor(hwMap, "turretFlywheelMotor");
         this.flywheelMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         this.flywheelMotor.setRunMode(Motor.RunMode.VelocityControl);
-        this.flywheelMotor.setVeloCoefficients(flywheelKp, flywheelKi, flywheelKd);
-        this.flywheelMotor.setFeedforwardCoefficients(0, flywheelKf);
+        this.flywheelMotor.setVeloCoefficients(
+                ShooterConstants.flywheelKp,
+                ShooterConstants.flywheelKi,
+                ShooterConstants.flywheelKd);
+        this.flywheelMotor.setFeedforwardCoefficients(0, ShooterConstants.flywheelKf);
 
         this.turretRampServo = new ServoEx(hwMap, "turretRampServo", 0, 50);
         this.turretRampServo.setInverted(true);
         //this.turretRampServo.getServo().setPosition(0);
-        //this.flywheelController = new PIDFController(ShooterConstants.FLYWHEEL_PIDF);
 
         this.limelight = hwMap.get(Limelight3A.class, "limelight");
         this.limelight.setPollRateHz(100);
@@ -75,8 +69,6 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
         this.limelight.start();
         this.limelight.pipelineSwitch(1);
         this.setState(State.READY);
-
-
     }
 
     @Override
@@ -105,7 +97,7 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
 
         if(state != State.OFF && state != State.RESET) {
             //goal targeting
-            setFlywheelSpeed(targetFlywheelSpeed);
+            setFlywheelSpeed(ShooterConstants.targetFlywheelSpeed);
             updateLimelight();
 
         } else {
@@ -136,6 +128,7 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
             telemetry.addData("ta", PoseTracker.INSTANCE.getTa());
             Pose3D botPose = currentResult.getBotpose_MT2();
             if(botPose != null) {
+                PoseTracker.INSTANCE.setLLPose(botPose);
                 telemetry.addData("pose", botPose.getPosition().toString());
                 telemetry.addData("orientation pose", botPose.getOrientation().toString());
             }

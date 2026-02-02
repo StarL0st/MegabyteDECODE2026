@@ -1,8 +1,10 @@
 package org.firstinspires.ftc.teamcode.base.constants;
 
+import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.geometry.Pose;
 
+@Configurable
 public class ShooterConstants {
     public static Pose GOAL_POS_RED = new Pose(138, 138);
     public static Pose GOAL_POS_BLUE = GOAL_POS_RED.mirror();
@@ -12,8 +14,13 @@ public class ShooterConstants {
     public static final double FLYWHEEL_OFF = 0.0;
 
     public static final double HOOD_LOW = 0.0;
+    public static final double HOOD_HIGH = 45;
 
-    public static PIDFCoefficients FLYWHEEL_PIDF = new PIDFCoefficients(0.006, 0.0015, 0, 0.091);
+    public static double flywheelKp = 0.006;
+    public static double flywheelKi = 0.0015;
+    public static double flywheelKd = 0;
+    public static double flywheelKf = 0.091;
 
-
+    //flywheel
+    public static double targetFlywheelSpeed = 0.8;
 }

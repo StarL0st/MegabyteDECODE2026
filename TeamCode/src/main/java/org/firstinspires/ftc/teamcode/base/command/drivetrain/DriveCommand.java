@@ -6,6 +6,14 @@ import org.firstinspires.ftc.teamcode.base.subsystems.Drivetrain;
 
 import java.util.function.DoubleSupplier;
 
+/**
+ * Default DriveCommand for the Drivetrain Subsystem
+ * <p>
+ * Used to pass the driver 1 controller inputs to the drivetrain movement calculations.
+ * Uses the SolversLib command system.
+ * <p>
+ * Do NOT modify.
+ */
 public class DriveCommand extends CommandBase {
 
     private final Drivetrain m_drive;

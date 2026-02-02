@@ -10,7 +10,12 @@ import com.seattlesolvers.solverslib.gamepad.GamepadKeys;
 import org.firstinspires.ftc.teamcode.base.BertoBot;
 import org.firstinspires.ftc.teamcode.base.command.drivetrain.DriveCommand;
 import org.firstinspires.ftc.teamcode.base.subsystems.Drivetrain;
+/**
+Master TeleOp
 
+To be used during competition, avoid making changes here as it is exclusively
+to register the robot logic against the Control Hub, so the OpMode shows up.
+ */
 @TeleOp(name = "MasterTeleOp", group = "FTC MEGABYTE NATIONALS")
 public class MasterTeleOp extends CommandOpMode {
     BertoBot bertoBot;

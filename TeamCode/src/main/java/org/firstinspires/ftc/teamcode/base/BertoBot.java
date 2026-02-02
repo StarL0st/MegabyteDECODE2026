@@ -22,6 +22,15 @@ import org.firstinspires.ftc.teamcode.base.subsystems.arcsystems.ConfigurableSub
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * Where all robot logic resides, avoid making changes as this is only the backbone
+ * to handle the registration of subsystems against SolversLib CommandScheduler.
+ * <p>
+ * Stores the instances of all SubsystemBase objects (drivetrain, intake, shooter),
+ * registers them with `CommandScheduler.getInstance().register()` so the logic runs.
+ * Then utilizing a custom interface it loads up the individual control bindings and
+ * default commands registered in each individual subsystem.
+ */
 public class BertoBot {
     //base
     private final HardwareMap hwMap;
@@ -46,7 +55,7 @@ public class BertoBot {
 
         this.lynxModules = hwMap.getAll(LynxModule.class);
         lynxModules.forEach((lynxModule -> {
-            lynxModule.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+            lynxModule.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         }));
 
         this.subsystems = new HashMap<>();
@@ -77,36 +86,18 @@ public class BertoBot {
                     subsystemBase.setDefaultCommand(defaultCmd);
                     telemetry.addLine("set data to cmd " + defaultCmd.toString());
                 }
-
-
             }
 
             if(!(subsystemBase instanceof ConfigurableSubsystem)) {
                 CommandScheduler.getInstance().registerSubsystem(subsystemBase);
             }
-
         }));
-
-
     }
 
     public void loop() {
+        for(LynxModule hub : lynxModules) {
+            hub.clearBulkCache();
+        }
         this.telemetry.update();
-    }
-
-    public HardwareMap getHwMap() {
-        return hwMap;
-    }
-
-    public JoinedTelemetry getTelemetry() {
-        return telemetry;
-    }
-
-    public SubsystemBase getSubsystem(String id) {
-        return this.subsystems.get(id);
-    }
-
-    public HashMap<String, SubsystemBase> getSubsytems() {
-        return this.subsystems;
     }
 }
