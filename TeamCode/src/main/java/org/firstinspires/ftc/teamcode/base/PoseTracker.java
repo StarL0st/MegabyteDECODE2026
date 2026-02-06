@@ -26,6 +26,8 @@ public class PoseTracker {
     public double tX;
     public double tA;
 
+    public boolean isTargetVisible = false;
+
     public PoseTracker() {
 
     }
@@ -50,6 +52,10 @@ public class PoseTracker {
     public Pose getPedroPose() {
         return PoseConverter.pose2DToPose(new Pose2D(this.unit, this.x, this.y, AngleUnit.DEGREES, this.heading), InvertedFTCCoordinates.INSTANCE)
                 .getAsCoordinateSystem(PedroCoordinates.INSTANCE);
+    }
+
+    public boolean isTargetVisible() {
+        return this.isTargetVisible;
     }
 
     public double getHeading() {

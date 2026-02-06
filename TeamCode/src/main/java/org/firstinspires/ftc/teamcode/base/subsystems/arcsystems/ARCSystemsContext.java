@@ -4,6 +4,8 @@ import com.bylazar.telemetry.JoinedTelemetry;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.seattlesolvers.solverslib.gamepad.GamepadEx;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 /**
  * Used for the creation of the subsystem instances and binding registration.
  * <p>

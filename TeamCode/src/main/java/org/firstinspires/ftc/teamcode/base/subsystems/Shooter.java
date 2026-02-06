@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.base.subsystems;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.JoinedTelemetry;
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.control.PIDFController;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.math.Vector;
@@ -20,6 +21,8 @@ import com.seattlesolvers.solverslib.hardware.servos.ServoEx;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.base.PoseTracker;
+import org.firstinspires.ftc.teamcode.base.config.ConfigManager;
+import org.firstinspires.ftc.teamcode.base.config.RobotConfig;
 import org.firstinspires.ftc.teamcode.base.constants.ShooterConstants;
 import org.firstinspires.ftc.teamcode.base.subsystems.arcsystems.ARCSystemsContext;
 import org.firstinspires.ftc.teamcode.base.subsystems.arcsystems.ConfigurableSubsystem;
@@ -61,14 +64,20 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
 
         this.turretRampServo = new ServoEx(hwMap, "turretRampServo", 0, 50);
         this.turretRampServo.setInverted(true);
-        //this.turretRampServo.getServo().setPosition(0);
+        //this.turretRampServo.getServo().setPosition(15);
 
         this.limelight = hwMap.get(Limelight3A.class, "limelight");
         this.limelight.setPollRateHz(100);
 
         this.limelight.start();
-        this.limelight.pipelineSwitch(1);
+        RobotConfig config = ConfigManager.getConfig();
+        if(config.getAlliance().equals(RobotConfig.Alliance.BLUE)) {
+            this.limelight.pipelineSwitch(0);
+        } else if(config.getAlliance().equals(RobotConfig.Alliance.RED)) {
+            this.limelight.pipelineSwitch(1);
+        }
         this.setState(State.READY);
+        timer.resetTimer();
     }
 
     @Override
@@ -78,14 +87,17 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
         switch (state) {
             case READY:
                 //ready logic
+                this.setHoodAngle(ShooterConstants.servoTargetPos);
                 break;
 
             case LAUNCH:
                 //launch logic
+                this.runFlywheel = true;
                 break;
 
             case OFF:
                 //off logic
+                this.runFlywheel = false;
                 break;
 
             case RESET:
@@ -97,14 +109,42 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
 
         if(state != State.OFF && state != State.RESET) {
             //goal targeting
-            setFlywheelSpeed(ShooterConstants.targetFlywheelSpeed);
+
+            double flywheelRegression = flywheelRegression(PoseTracker.distRegression(PoseTracker.INSTANCE.getTa()));
+            setFlywheelSpeed(flywheelRegression);
+            telemetry.addData("flywheel regression", flywheelRegression);
+            double hoodRegression = hoodRegression(PoseTracker.distRegression(PoseTracker.INSTANCE.getTa()));
+            //setHoodAngle(hoodRegression);
+            telemetry.addData("servo regression", hoodRegression);
+            telemetry.addData("debug flywheel target speed", ShooterConstants.targetFlywheelSpeed);
             updateLimelight();
 
         } else {
-            this.flywheelMotor.set(ShooterConstants.FLYWHEEL_OFF);
-            this.setHoodAngle(ShooterConstants.HOOD_LOW);
-            this.flywheelController.reset();
+            if(this.flywheelMotor.get() != 0) {
+                this.flywheelMotor.stopMotor();
+            }
+            this.setHoodAngle(ShooterConstants.servoTargetPos);
         }
+    }
+
+    public double hoodRegression(double x) {
+        double y = -1.69426e-7 * Math.pow(x, 4)
+                + 0.0000936065 * Math.pow(x, 3)
+                - 0.0176738 * Math.pow(x, 2)
+                + 1.38363 * x
+                - 32.41501;
+
+        return Math.max(0.0, Math.min(1.0, y));
+    }
+
+
+    public double flywheelRegression(double x) {
+        double y = 3.97033e-9 * Math.pow(x, 3)
+                - 0.00000343732 * Math.pow(x, 2)
+                + 0.00169896 * x
+                + 0.36;
+
+        return Math.max(0.0, Math.min(1.0, y));
     }
 
     public void setState(State s) {
@@ -114,6 +154,7 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
 
     private void updateLimelight() {
         this.limelight.updateRobotOrientation(PoseTracker.INSTANCE.getNormalizedHeading());
+        telemetry.addData("normalized heading", PoseTracker.INSTANCE.getNormalizedHeading());
         LLResult currentResult = this.limelight.getLatestResult();
         if(currentResult != null && currentResult.isValid()) {
             double staleness = currentResult.getStaleness();
@@ -143,11 +184,16 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
         this.telemetry.addData("flywheel state", this.runFlywheel);
         this.telemetry.addData("flywheel speed", this.flywheelMotor.getCorrectedVelocity());
         this.telemetry.addData("flywheel power", speed);
-        this.flywheelMotor.set(runFlywheel ? speed : 0);
+        if(this.runFlywheel) {
+            this.flywheelMotor.set(speed);
+        } else {
+            this.flywheelMotor.stopMotor();
+        }
     }
 
     private void setHoodAngle(double angle) {
-        if(angle < 0 || angle > 45) return;
+        if(angle < ShooterConstants.HOOD_LOW || angle > ShooterConstants.HOOD_HIGH) return;
+        if(angle == this.turretRampServo.get()) return;
         this.turretRampServo.set(angle);
     }
 
@@ -158,17 +204,20 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
 
     @Override
     public void configureBindings(ARCSystemsContext ctx) {
-        ctx.getDriverOp().getGamepadButton(GamepadKeys.Button.TRIANGLE)
+        ctx.getToolOp().getGamepadButton(GamepadKeys.Button.TRIANGLE)
                 .whenReleased(() -> {
                     this.runFlywheel = !this.runFlywheel;
                 });
-        ctx.getDriverOp().getGamepadButton(GamepadKeys.Button.DPAD_UP)
-                .whenReleased(() -> {
-                    this.setHoodAngle(45);
+        ctx.getToolOp().getGamepadButton(GamepadKeys.Button.DPAD_LEFT)
+                .whenPressed(() -> {
+                    this.setHoodAngle(ShooterConstants.servoTargetPos);
                 });
-        ctx.getDriverOp().getGamepadButton(GamepadKeys.Button.DPAD_DOWN)
-                .whenReleased(() -> {
-                    this.setHoodAngle(0);
+        /*
+        ctx.getToolOp().getGamepadButton(GamepadKeys.Button.DPAD_RIGHT)
+                .whenPressed(() -> {
+                    this.setHoodAngle(this.hoodRegression(PoseTracker.distRegression(PoseTracker.INSTANCE.getTa())));
                 });
+
+         */
     }
 }

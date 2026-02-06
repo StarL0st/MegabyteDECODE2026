@@ -16,11 +16,13 @@ public class ShooterConstants {
     public static final double HOOD_LOW = 0.0;
     public static final double HOOD_HIGH = 45;
 
-    public static double flywheelKp = 0.006;
-    public static double flywheelKi = 0.0015;
-    public static double flywheelKd = 0;
-    public static double flywheelKf = 0.091;
+    public static double flywheelKp = 21.5;
+    public static double flywheelKi = 0.5;
+    public static double flywheelKd = 2;
+    public static double flywheelKf = 8;
 
     //flywheel
-    public static double targetFlywheelSpeed = 0.8;
+    public static double targetFlywheelSpeed = 0.9;
+    public static double servoTargetPos = 15;
+
 }
