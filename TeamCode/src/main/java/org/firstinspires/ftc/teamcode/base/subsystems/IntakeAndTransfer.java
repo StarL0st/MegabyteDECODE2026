@@ -183,35 +183,12 @@ public class IntakeAndTransfer extends SubsystemBase implements ConfigurableSubs
                         this.runState = RunState.OFF;
                     }
                 });
-        ctx.getToolOp().getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)
-                .whenPressed(() -> {
-                    if(this.runState != RunState.RUNNING) {
-                        this.runState = RunState.RUNNING;
-                    }
-                })
-                .whenReleased(() -> {
-                    if(this.runState != RunState.OFF) {
-                        this.runState = RunState.OFF;
-                    }
-                });
-
 
         //Second driver handles state changes
         ctx.getToolOp().getGamepadButton(GamepadKeys.Button.LEFT_BUMPER)
                 .whenReleased(this::toggleState);
 
         ctx.getToolOp().getGamepadButton(GamepadKeys.Button.DPAD_DOWN)
-                .whenPressed(() -> {
-                    if(this.runState != RunState.REVERSE) {
-                        this.runState = RunState.REVERSE;
-                    }
-                })
-                .whenReleased(() -> {
-                    if(this.runState != RunState.OFF) {
-                        this.runState = RunState.OFF;
-                    }
-                });
-        ctx.getDriverOp().getGamepadButton(GamepadKeys.Button.DPAD_DOWN)
                 .whenPressed(() -> {
                     if(this.runState != RunState.REVERSE) {
                         this.runState = RunState.REVERSE;
