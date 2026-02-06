@@ -82,8 +82,9 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
 
     @Override
     public void periodic() {
+        telemetry.addLine("  ---- SHOOTER ----  ");
+        telemetry.addData("[STATE]", this.state.toString());
         //state machine
-
         switch (state) {
             case READY:
                 //ready logic
@@ -112,11 +113,11 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
 
             double flywheelRegression = flywheelRegression(PoseTracker.distRegression(PoseTracker.INSTANCE.getTa()));
             setFlywheelSpeed(flywheelRegression);
-            telemetry.addData("flywheel regression", flywheelRegression);
+            telemetry.addData("[FLYWHEEL POWER]", flywheelRegression);
             double hoodRegression = hoodRegression(PoseTracker.distRegression(PoseTracker.INSTANCE.getTa()));
             //setHoodAngle(hoodRegression);
-            telemetry.addData("servo regression", hoodRegression);
-            telemetry.addData("debug flywheel target speed", ShooterConstants.targetFlywheelSpeed);
+            //telemetry.addData("servo regression", hoodRegression);
+            //telemetry.addData("debug flywheel target speed", ShooterConstants.targetFlywheelSpeed);
             updateLimelight();
 
         } else {
@@ -125,6 +126,7 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
             }
             this.setHoodAngle(ShooterConstants.servoTargetPos);
         }
+
     }
 
     public double hoodRegression(double x) {
@@ -154,26 +156,27 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
 
     private void updateLimelight() {
         this.limelight.updateRobotOrientation(PoseTracker.INSTANCE.getNormalizedHeading());
-        telemetry.addData("normalized heading", PoseTracker.INSTANCE.getNormalizedHeading());
+        //telemetry.addData("normalized heading", PoseTracker.INSTANCE.getNormalizedHeading());
+        telemetry.addLine("   ---- LIMELIGHT ----   ");
         LLResult currentResult = this.limelight.getLatestResult();
         if(currentResult != null && currentResult.isValid()) {
             double staleness = currentResult.getStaleness();
             if(staleness < 100) {
-                telemetry.addData("LL3A Data Last Update", staleness + "ms");
+                telemetry.addData("[LL3A Data Last Update]", staleness + "ms");
             }  else {
-                telemetry.addData("LL3A Data", "Data is Old! " + staleness + "ms");
+                telemetry.addData("[LL3A Data]", "Data is Old! " + staleness + "ms");
             }
             PoseTracker.INSTANCE.setTa(currentResult.getTa());
-            telemetry.addData("tx", PoseTracker.INSTANCE.getTx());
+            telemetry.addData("[LL TX]", PoseTracker.INSTANCE.getTx());
             PoseTracker.INSTANCE.setTx(currentResult.getTx());
-            telemetry.addData("ta", PoseTracker.INSTANCE.getTa());
+            telemetry.addData("[LL TA]", PoseTracker.INSTANCE.getTa());
             Pose3D botPose = currentResult.getBotpose_MT2();
             if(botPose != null) {
                 PoseTracker.INSTANCE.setLLPose(botPose);
-                telemetry.addData("pose", botPose.getPosition().toString());
-                telemetry.addData("orientation pose", botPose.getOrientation().toString());
+                //telemetry.addData("pose", botPose.getPosition().toString());
+                //telemetry.addData("orientation pose", botPose.getOrientation().toString());
             }
-            telemetry.addData("regression dist", PoseTracker.distRegression(
+            telemetry.addData("[LL TAG DISTANCE (CM)]", PoseTracker.distRegression(
                     PoseTracker.INSTANCE.getTa()
             ));
         }
@@ -181,9 +184,10 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
 
     private void setFlywheelSpeed(double speed) {
         double flywheelError = speed - this.flywheelMotor.getCorrectedVelocity();
-        this.telemetry.addData("flywheel state", this.runFlywheel);
-        this.telemetry.addData("flywheel speed", this.flywheelMotor.getCorrectedVelocity());
-        this.telemetry.addData("flywheel power", speed);
+        telemetry.addLine("  ---- FLYWHEEL ----  ");
+        this.telemetry.addData("[RUNNING?]", this.runFlywheel);
+        this.telemetry.addData("[SPEED (RPM)]", this.flywheelMotor.getCorrectedVelocity());
+        this.telemetry.addData("[POWER]", speed);
         if(this.runFlywheel) {
             this.flywheelMotor.set(speed);
         } else {
