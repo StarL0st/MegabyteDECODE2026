@@ -22,7 +22,8 @@ public class ShooterConstants {
     public static double flywheelKf = 8;
 
     //flywheel
-    public static double targetFlywheelSpeed = 0.9;
+    public static double FLYWHEEL_STATIC_SPEED = 0.7;
     public static double servoTargetPos = 15;
+
 
 }

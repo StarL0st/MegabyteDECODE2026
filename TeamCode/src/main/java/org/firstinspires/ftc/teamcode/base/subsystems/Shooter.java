@@ -45,6 +45,7 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
     public PIDFController flywheelController;
 
     private boolean runFlywheel = false;
+    private boolean runFlywheelStatic = false;
 
     private final Vector robotToGoalVector = new Vector();
     private Vector launchVector = new Vector();
@@ -193,6 +194,11 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
         } else {
             this.flywheelMotor.stopMotor();
         }
+        if(this.runFlywheelStatic) {
+            this.flywheelMotor.set(ShooterConstants.FLYWHEEL_STATIC_SPEED);
+        } else {
+            this.flywheelMotor.stopMotor();
+        }
     }
 
     private void setHoodAngle(double angle) {
@@ -212,16 +218,18 @@ public class Shooter extends SubsystemBase implements ConfigurableSubsystem {
                 .whenReleased(() -> {
                     this.runFlywheel = !this.runFlywheel;
                 });
+        ctx.getToolOp().getGamepadButton(GamepadKeys.Button.A)
+                        .whenReleased(() -> {
+                            this.runFlywheelStatic = !this.runFlywheelStatic;
+                        });
         ctx.getToolOp().getGamepadButton(GamepadKeys.Button.DPAD_LEFT)
                 .whenPressed(() -> {
                     this.setHoodAngle(ShooterConstants.servoTargetPos);
                 });
-        /*
+
         ctx.getToolOp().getGamepadButton(GamepadKeys.Button.DPAD_RIGHT)
                 .whenPressed(() -> {
-                    this.setHoodAngle(this.hoodRegression(PoseTracker.distRegression(PoseTracker.INSTANCE.getTa())));
+                    this.limelight.captureSnapshot("test field view");
                 });
-
-         */
     }
 }
